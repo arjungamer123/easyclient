@@ -4,7 +4,7 @@ A mobile-first fantasy-football draft-order generator for two runners representi
 
 ## Live calculator
 
-https://raw.githack.com/arjungamer123/easyclient/main/index.html
+https://arjungamer123.github.io/easyclient/
 
 ## Event protocol
 
