@@ -1,0 +1,139 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#0b0d0c">
+  <meta name="description" content="A transparent fantasy football draft-order generator powered by a 6K run and four beers at the bar.">
+  <title>6K + 4 Beers Draft Lottery</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <main class="shell">
+    <header>
+      <div class="eyebrow">Draft-order protocol</div>
+      <h1>6K <span class="slash">/</span> 4 Beers</h1>
+      <p class="lede">Two runners do the work. Ten managers live with the consequences.</p>
+      <div class="roster" id="roster"></div>
+    </header>
+
+    <div class="verification" id="verificationBanner">Verified shared result — inputs reproduce this exact order.</div>
+
+    <section class="card" id="lockCard">
+      <div class="step-head">
+        <div><div class="step-no">01</div><h2>Lock it before the run</h2></div>
+        <div class="status" id="lockStatus">Open</div>
+      </div>
+      <p class="body-copy">Generate a commitment code and post it in the league chat. That makes the final draw much harder to reroll after the fact.</p>
+      <button class="primary" id="lockButton" type="button">Generate pre-run lock</button>
+      <div class="lockbox" id="lockBox">
+        <div class="lock-meta">League lock code</div>
+        <div class="lock-code" id="lockCode">—</div>
+        <div class="lock-meta" id="lockTime"></div>
+        <div class="inline-actions">
+          <button class="secondary" id="copyLockButton" type="button">Copy for league chat</button>
+        </div>
+      </div>
+    </section>
+
+    <section class="card" id="runCard">
+      <div class="step-head">
+        <div><div class="step-no">02</div><h2>Record the 6K</h2></div>
+        <div class="status" id="runStatus">Waiting</div>
+      </div>
+      <p class="body-copy">Use the exact elapsed times from the same timing source. No rounding.</p>
+      <div class="grid">
+        <div class="field">
+          <label for="runner1Name">Runner 1</label>
+          <input id="runner1Name" autocomplete="off" value="Arjun" maxlength="30">
+        </div>
+        <div class="field">
+          <label for="runner1Time">6K time</label>
+          <input id="runner1Time" inputmode="numeric" autocomplete="off" placeholder="28:42" maxlength="6">
+          <span class="hint" id="pace1">Format MM:SS</span>
+        </div>
+        <div class="field">
+          <label for="runner2Name">Runner 2</label>
+          <input id="runner2Name" autocomplete="off" placeholder="Name" maxlength="30">
+        </div>
+        <div class="field">
+          <label for="runner2Time">6K time</label>
+          <input id="runner2Time" inputmode="numeric" autocomplete="off" placeholder="31:07" maxlength="6">
+          <span class="hint" id="pace2">Format MM:SS</span>
+        </div>
+      </div>
+    </section>
+
+    <section class="card" id="barCard">
+      <div class="step-head">
+        <div><div class="step-no">03</div><h2>Capture the bar</h2></div>
+        <div class="status" id="barStatus">0 / 4</div>
+      </div>
+      <p class="body-copy">Two beers each. Tap the correct card when each glass is placed down. Service timing—not drinking speed—supplies the four unpredictable inputs.</p>
+      <div class="field">
+        <label for="barName">Bar name</label>
+        <input id="barName" autocomplete="organization" placeholder="As shown on the receipt" maxlength="60">
+      </div>
+      <div class="beer-grid" id="beerGrid"></div>
+      <div class="grid" style="margin-top:15px">
+        <div class="field">
+          <label for="receiptRef">Receipt / check reference</label>
+          <input id="receiptRef" autocomplete="off" autocapitalize="characters" placeholder="Last 4–8 characters" maxlength="16">
+          <span class="hint">Use the printed check, order or transaction number.</span>
+        </div>
+        <div class="field">
+          <label for="receiptTotal">Printed total before tip</label>
+          <input id="receiptTotal" inputmode="decimal" autocomplete="off" placeholder="24.00" maxlength="10">
+          <span class="hint">Enter dollars and cents exactly as printed.</span>
+        </div>
+      </div>
+    </section>
+
+    <section class="card" id="drawCard">
+      <div class="step-head">
+        <div><div class="step-no">04</div><h2>Reveal the order</h2></div>
+        <div class="status" id="drawStatus">Locked</div>
+      </div>
+      <button class="primary" id="revealButton" type="button" disabled>Generate official draft order</button>
+      <p class="requirements" id="requirements">Complete the lock, both run times, four beer stamps and receipt details.</p>
+    </section>
+
+    <section class="card" id="resultCard" aria-live="polite">
+      <div class="step-head">
+        <div><div class="step-no">FINAL</div><h2>Official draft order</h2></div>
+        <div class="status done">Verified</div>
+      </div>
+      <ol class="podium" id="orderList"></ol>
+      <div class="proof">
+        <div class="proof-label">SHA-256 proof</div>
+        <div class="proof-hash" id="proofHash"></div>
+      </div>
+      <div class="result-actions">
+        <button class="secondary" id="copyResultButton" type="button">Copy results</button>
+        <button class="secondary" id="shareButton" type="button">Share verification link</button>
+      </div>
+    </section>
+
+    <details>
+      <summary>The method</summary>
+      <div class="method">
+        <ol>
+          <li>Before the run, the site creates a random commitment code and timestamp.</li>
+          <li>The exact two 6K times are recorded.</li>
+          <li>At the bar, four taps capture when each beer lands, followed by the printed receipt reference and total.</li>
+          <li>Those fixed inputs and the ten names are normalized into one record and hashed with <code>SHA-256</code>.</li>
+          <li>The digest drives an unbiased deterministic Fisher–Yates shuffle. The same evidence always reproduces the same order.</li>
+        </ol>
+      </div>
+    </details>
+
+    <p class="safety">No chugging component. Drink at your own pace; non-alcoholic beer works identically.</p>
+    <div class="footer-actions"><button class="text-button" id="resetButton" type="button">Reset the entire event</button></div>
+  </main>
+
+  <div class="toast" id="toast" role="status"></div>
+
+  <script src="crypto.js" defer></script>
+  <script src="app.js" defer></script>
+</body>
+</html>
