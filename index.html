@@ -2,138 +2,728 @@
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <meta name="theme-color" content="#0b0d0c">
-  <meta name="description" content="A transparent fantasy football draft-order generator powered by a 6K run and four beers at the bar.">
-  <title>6K + 4 Beers Draft Lottery</title>
-  <link rel="stylesheet" href="styles.css">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#0d1117">
+  <meta name="description" content="A simple 6K and four-beer fantasy football draft order generator.">
+  <title>6K + 4 Beers Draft Order</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      --bg: #0d1117;
+      --panel: #151b23;
+      --panel-2: #0f141b;
+      --line: #303844;
+      --text: #f2f5f8;
+      --muted: #9aa6b2;
+      --accent: #f0b429;
+      --accent-ink: #161009;
+      --good: #58c487;
+      --bad: #ff7b72;
+      --radius: 16px;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background:
+        radial-gradient(circle at top right, rgba(240, 180, 41, .09), transparent 33rem),
+        var(--bg);
+      color: var(--text);
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    button, input { font: inherit; }
+
+    .shell {
+      width: min(760px, 100%);
+      margin: 0 auto;
+      padding: 28px 16px calc(56px + env(safe-area-inset-bottom));
+    }
+
+    .eyebrow {
+      color: var(--accent);
+      font-size: 12px;
+      font-weight: 800;
+      letter-spacing: .16em;
+      text-transform: uppercase;
+    }
+
+    h1 {
+      margin: 10px 0 8px;
+      max-width: 650px;
+      font-size: clamp(38px, 10vw, 72px);
+      line-height: .92;
+      letter-spacing: -.065em;
+    }
+
+    .lede {
+      margin: 0;
+      color: var(--muted);
+      font-size: 15px;
+      line-height: 1.55;
+    }
+
+    .roster {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 7px;
+      margin-top: 20px;
+    }
+
+    .pill {
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      padding: 6px 9px;
+      color: #c9d2dc;
+      background: rgba(255,255,255,.025);
+      font-size: 11px;
+    }
+
+    .card {
+      margin-top: 16px;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: rgba(21, 27, 35, .94);
+      padding: 18px;
+      box-shadow: 0 18px 50px rgba(0,0,0,.16);
+    }
+
+    .step-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 14px;
+    }
+
+    .step {
+      color: var(--accent);
+      font-size: 11px;
+      font-weight: 800;
+      letter-spacing: .14em;
+      text-transform: uppercase;
+    }
+
+    h2 {
+      margin: 3px 0 0;
+      font-size: 19px;
+      letter-spacing: -.025em;
+    }
+
+    .section-note {
+      margin: -3px 0 16px;
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.5;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 12px;
+    }
+
+    .field label {
+      display: block;
+      margin-bottom: 6px;
+      color: #c9d2dc;
+      font-size: 12px;
+      font-weight: 700;
+    }
+
+    .field input {
+      width: 100%;
+      min-height: 50px;
+      border: 1px solid var(--line);
+      border-radius: 11px;
+      background: var(--panel-2);
+      color: var(--text);
+      padding: 11px 12px;
+      font-size: 18px;
+      outline: none;
+      caret-color: var(--accent);
+    }
+
+    .field input:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(240, 180, 41, .13);
+    }
+
+    .field input[aria-invalid="true"] {
+      border-color: var(--bad);
+      box-shadow: 0 0 0 3px rgba(255, 123, 114, .10);
+    }
+
+    .hint {
+      display: block;
+      min-height: 16px;
+      margin-top: 5px;
+      color: var(--muted);
+      font-size: 10px;
+      line-height: 1.4;
+    }
+
+    .primary, .secondary {
+      border: 0;
+      border-radius: 12px;
+      cursor: pointer;
+      min-height: 52px;
+      padding: 13px 16px;
+      font-weight: 900;
+    }
+
+    .primary {
+      width: 100%;
+      background: var(--accent);
+      color: var(--accent-ink);
+      font-size: 15px;
+    }
+
+    .primary:active { transform: translateY(1px); }
+
+    .secondary {
+      background: transparent;
+      color: #d7dee7;
+      border: 1px solid var(--line);
+    }
+
+    .error {
+      display: none;
+      margin: 12px 0 0;
+      color: var(--bad);
+      font-size: 12px;
+      line-height: 1.45;
+    }
+
+    .error.visible { display: block; }
+
+    .result {
+      display: none;
+      border-color: rgba(88, 196, 135, .45);
+    }
+
+    .result.visible { display: block; }
+
+    .result-status {
+      border-radius: 999px;
+      padding: 5px 8px;
+      color: var(--good);
+      background: rgba(88, 196, 135, .10);
+      font-size: 10px;
+      font-weight: 900;
+      text-transform: uppercase;
+      letter-spacing: .08em;
+    }
+
+    .order {
+      margin: 0;
+      padding: 0;
+      list-style: none;
+      counter-reset: draft;
+    }
+
+    .order li {
+      counter-increment: draft;
+      display: grid;
+      grid-template-columns: 42px 1fr;
+      align-items: center;
+      min-height: 50px;
+      border-bottom: 1px solid var(--line);
+      font-size: 18px;
+      font-weight: 800;
+    }
+
+    .order li::before {
+      content: counter(draft, decimal-leading-zero);
+      color: var(--accent);
+      font-size: 12px;
+      font-weight: 900;
+    }
+
+    .order li:last-child { border-bottom: 0; }
+
+    .proof {
+      margin-top: 16px;
+      padding: 13px;
+      border-radius: 11px;
+      background: var(--panel-2);
+      border: 1px solid var(--line);
+    }
+
+    .proof-label {
+      color: var(--muted);
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: .1em;
+    }
+
+    .draw-id {
+      margin-top: 5px;
+      color: var(--good);
+      font-size: 16px;
+      font-weight: 900;
+    }
+
+    .hash {
+      margin-top: 7px;
+      color: #8894a0;
+      font-size: 10px;
+      line-height: 1.45;
+      overflow-wrap: anywhere;
+    }
+
+    .actions {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-top: 12px;
+    }
+
+    details {
+      margin-top: 16px;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: rgba(21, 27, 35, .72);
+      overflow: hidden;
+    }
+
+    summary {
+      cursor: pointer;
+      padding: 16px 18px;
+      font-size: 13px;
+      font-weight: 900;
+    }
+
+    .method {
+      padding: 0 18px 17px;
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.6;
+    }
+
+    .method p { margin: 0 0 10px; }
+    .method p:last-child { margin-bottom: 0; }
+
+    code {
+      color: #e9c46a;
+      font-family: inherit;
+    }
+
+    .safety {
+      margin: 18px 4px 0;
+      color: #77838f;
+      font-size: 10px;
+      line-height: 1.5;
+      text-align: center;
+    }
+
+    .toast {
+      position: fixed;
+      left: 50%;
+      bottom: calc(20px + env(safe-area-inset-bottom));
+      z-index: 10;
+      max-width: calc(100vw - 32px);
+      transform: translate(-50%, 18px);
+      opacity: 0;
+      pointer-events: none;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      background: #202833;
+      color: var(--text);
+      padding: 10px 14px;
+      font-size: 11px;
+      transition: .18s ease;
+    }
+
+    .toast.visible {
+      transform: translate(-50%, 0);
+      opacity: 1;
+    }
+
+    @media (max-width: 560px) {
+      .shell { padding-top: 22px; }
+      .grid { grid-template-columns: 1fr; }
+      .actions { grid-template-columns: 1fr; }
+      .card { padding: 16px; }
+    }
+  </style>
 </head>
 <body>
   <main class="shell">
     <header>
-      <div class="eyebrow">Draft-order protocol</div>
-      <h1>6K <span class="slash">/</span> 4 Beers</h1>
-      <p class="lede">Two runners do the work. Ten managers live with the consequences.</p>
-      <div class="roster" id="roster"></div>
+      <div class="eyebrow">Fantasy draft order</div>
+      <h1>6K + 4 Beers</h1>
+      <p class="lede">Enter the two run times and the four beer times. That is the entire algorithm.</p>
+      <div class="roster" id="roster" aria-label="League managers"></div>
     </header>
 
-    <div class="verification" id="verificationBanner">Verified shared result — inputs reproduce this exact order.</div>
+    <form id="draftForm" novalidate>
+      <section class="card">
+        <div class="step-head">
+          <div><div class="step">01</div><h2>6K run times</h2></div>
+        </div>
+        <p class="section-note">Type <code>28:42</code> or simply <code>2842</code>. Plain <code>28</code> means 28:00.</p>
+        <div class="grid">
+          <div class="field">
+            <label for="run1">Arjun — 6K</label>
+            <input id="run1" name="run1" inputmode="numeric" autocomplete="off" placeholder="28:42" enterkeyhint="next">
+            <span class="hint" id="run1Hint">Minutes:seconds</span>
+          </div>
+          <div class="field">
+            <label for="run2">Other runner — 6K</label>
+            <input id="run2" name="run2" inputmode="numeric" autocomplete="off" placeholder="31:07" enterkeyhint="next">
+            <span class="hint" id="run2Hint">Minutes:seconds</span>
+          </div>
+        </div>
+      </section>
 
-    <section class="card" id="lockCard">
-      <div class="step-head">
-        <div><div class="step-no">01</div><h2>Lock it before the run</h2></div>
-        <div class="status" id="lockStatus">Open</div>
-      </div>
-      <p class="body-copy">Generate a commitment code and post it in the league chat. That makes the final draw much harder to reroll after the fact.</p>
-      <button class="primary" id="lockButton" type="button">Generate pre-run lock</button>
-      <div class="lockbox" id="lockBox">
-        <div class="lock-meta">League lock code</div>
-        <div class="lock-code" id="lockCode">—</div>
-        <div class="lock-meta" id="lockTime"></div>
-        <div class="inline-actions">
-          <button class="secondary" id="copyLockButton" type="button">Copy for league chat</button>
+      <section class="card">
+        <div class="step-head">
+          <div><div class="step">02</div><h2>Beer times</h2></div>
         </div>
-      </div>
-    </section>
+        <p class="section-note">Enter each agreed beer duration as <code>1:20</code> or total seconds such as <code>80</code>.</p>
+        <div class="grid">
+          <div class="field">
+            <label for="beer1">Arjun — Beer 1</label>
+            <input id="beer1" name="beer1" inputmode="numeric" autocomplete="off" placeholder="1:20" enterkeyhint="next">
+            <span class="hint" id="beer1Hint">M:SS or seconds</span>
+          </div>
+          <div class="field">
+            <label for="beer2">Other runner — Beer 1</label>
+            <input id="beer2" name="beer2" inputmode="numeric" autocomplete="off" placeholder="1:34" enterkeyhint="next">
+            <span class="hint" id="beer2Hint">M:SS or seconds</span>
+          </div>
+          <div class="field">
+            <label for="beer3">Arjun — Beer 2</label>
+            <input id="beer3" name="beer3" inputmode="numeric" autocomplete="off" placeholder="1:12" enterkeyhint="next">
+            <span class="hint" id="beer3Hint">M:SS or seconds</span>
+          </div>
+          <div class="field">
+            <label for="beer4">Other runner — Beer 2</label>
+            <input id="beer4" name="beer4" inputmode="numeric" autocomplete="off" placeholder="1:27" enterkeyhint="done">
+            <span class="hint" id="beer4Hint">M:SS or seconds</span>
+          </div>
+        </div>
+      </section>
 
-    <section class="card" id="runCard">
-      <div class="step-head">
-        <div><div class="step-no">02</div><h2>Record the 6K</h2></div>
-        <div class="status" id="runStatus">Waiting</div>
-      </div>
-      <p class="body-copy">Use the exact elapsed times from the same timing source. No rounding.</p>
-      <div class="grid">
-        <div class="field">
-          <label for="runner1Name">Runner 1</label>
-          <input id="runner1Name" autocomplete="off" value="Arjun" maxlength="30">
+      <section class="card">
+        <div class="step-head">
+          <div><div class="step">03</div><h2>Generate</h2></div>
         </div>
-        <div class="field">
-          <label for="runner1Time">6K time</label>
-          <input id="runner1Time" inputmode="numeric" autocomplete="off" placeholder="28:42" maxlength="6">
-          <span class="hint" id="pace1">Format MM:SS</span>
-        </div>
-        <div class="field">
-          <label for="runner2Name">Runner 2</label>
-          <input id="runner2Name" autocomplete="off" placeholder="Name" maxlength="30">
-        </div>
-        <div class="field">
-          <label for="runner2Time">6K time</label>
-          <input id="runner2Time" inputmode="numeric" autocomplete="off" placeholder="31:07" maxlength="6">
-          <span class="hint" id="pace2">Format MM:SS</span>
-        </div>
-      </div>
-    </section>
+        <button class="primary" type="submit">Generate draft order</button>
+        <p class="error" id="errorMessage" role="alert"></p>
+      </section>
+    </form>
 
-    <section class="card" id="barCard">
+    <section class="card result" id="resultCard" aria-live="polite">
       <div class="step-head">
-        <div><div class="step-no">03</div><h2>Capture the bar</h2></div>
-        <div class="status" id="barStatus">0 / 4</div>
+        <div><div class="step">Final</div><h2>Official draft order</h2></div>
+        <div class="result-status">Calculated</div>
       </div>
-      <p class="body-copy">Two beers each. Tap the correct card when each glass is placed down. Service timing—not drinking speed—supplies the four unpredictable inputs.</p>
-      <div class="field">
-        <label for="barName">Bar name</label>
-        <input id="barName" autocomplete="organization" placeholder="As shown on the receipt" maxlength="60">
-      </div>
-      <div class="beer-grid" id="beerGrid"></div>
-      <div class="grid" style="margin-top:15px">
-        <div class="field">
-          <label for="receiptRef">Receipt / check reference</label>
-          <input id="receiptRef" autocomplete="off" autocapitalize="characters" placeholder="Last 4–8 characters" maxlength="16">
-          <span class="hint">Use the printed check, order or transaction number.</span>
-        </div>
-        <div class="field">
-          <label for="receiptTotal">Printed total before tip</label>
-          <input id="receiptTotal" inputmode="decimal" autocomplete="off" placeholder="24.00" maxlength="10">
-          <span class="hint">Enter dollars and cents exactly as printed.</span>
-        </div>
-      </div>
-    </section>
-
-    <section class="card" id="drawCard">
-      <div class="step-head">
-        <div><div class="step-no">04</div><h2>Reveal the order</h2></div>
-        <div class="status" id="drawStatus">Locked</div>
-      </div>
-      <button class="primary" id="revealButton" type="button" disabled>Generate official draft order</button>
-      <p class="requirements" id="requirements">Complete the lock, both run times, four beer stamps and receipt details.</p>
-    </section>
-
-    <section class="card" id="resultCard" aria-live="polite">
-      <div class="step-head">
-        <div><div class="step-no">FINAL</div><h2>Official draft order</h2></div>
-        <div class="status done">Verified</div>
-      </div>
-      <ol class="podium" id="orderList"></ol>
+      <ol class="order" id="orderList"></ol>
       <div class="proof">
-        <div class="proof-label">SHA-256 proof</div>
-        <div class="proof-hash" id="proofHash"></div>
+        <div class="proof-label">Draw ID</div>
+        <div class="draw-id" id="drawId"></div>
+        <div class="hash" id="proofHash"></div>
       </div>
-      <div class="result-actions">
-        <button class="secondary" id="copyResultButton" type="button">Copy results</button>
-        <button class="secondary" id="shareButton" type="button">Share verification link</button>
+      <div class="actions">
+        <button class="secondary" id="copyButton" type="button">Copy order</button>
+        <button class="secondary" id="clearButton" type="button">Clear and start again</button>
       </div>
     </section>
 
     <details>
-      <summary>The method</summary>
+      <summary>How the calculation works</summary>
       <div class="method">
-        <ol>
-          <li>Before the run, the site creates a random commitment code and timestamp.</li>
-          <li>The exact two 6K times are recorded.</li>
-          <li>At the bar, four taps capture when each beer lands, followed by the printed receipt reference and total.</li>
-          <li>Those fixed inputs and the ten names are normalized into one record and hashed with <code>SHA-256</code>.</li>
-          <li>The digest drives an unbiased deterministic Fisher–Yates shuffle. The same evidence always reproduces the same order.</li>
-        </ol>
+        <p>The site converts all six entries into seconds in this fixed order: Arjun run, other run, Arjun beer 1, other beer 1, Arjun beer 2, other beer 2.</p>
+        <p>It combines those six numbers with the fixed manager list, creates a SHA-256 hash, and uses the hash to run a deterministic Fisher–Yates shuffle.</p>
+        <p>Identical times always produce the identical draft order. Changing any time changes the seed and therefore the draw.</p>
       </div>
     </details>
 
-    <p class="safety">No chugging component. Drink at your own pace; non-alcoholic beer works identically.</p>
-    <div class="footer-actions"><button class="text-button" id="resetButton" type="button">Reset the entire event</button></div>
+    <p class="safety">The calculator records durations only. It does not require rapid drinking; use whatever pace and rules the group agrees.</p>
   </main>
 
   <div class="toast" id="toast" role="status"></div>
 
-  <script src="crypto.js" defer></script>
-  <script src="app.js" defer></script>
+  <script>
+    "use strict";
+
+    const PLAYERS = [
+      "Cousins", "Smurph", "Vishnu", "Robbie", "Bilal",
+      "AB", "Arnold", "Arjun", "Fuckshane", "Money"
+    ];
+    const VERSION = "6K4B-SIMPLE-V2";
+    const encoder = new TextEncoder();
+    const fieldIds = ["run1", "run2", "beer1", "beer2", "beer3", "beer4"];
+    const $ = (id) => document.getElementById(id);
+    let latestResult = null;
+    let toastTimer = null;
+
+    function escapeHtml(value) {
+      return String(value).replace(/[&<>'"]/g, (character) => ({
+        "&": "&amp;", "<": "&lt;", ">": "&gt;", "'": "&#39;", '"': "&quot;"
+      }[character]));
+    }
+
+    function renderRoster() {
+      $("roster").innerHTML = PLAYERS
+        .map((name) => `<span class="pill">${escapeHtml(name)}</span>`)
+        .join("");
+    }
+
+    function parseClock(value) {
+      const cleaned = String(value).trim().replace(/\s+/g, "");
+      if (!cleaned) return null;
+
+      const parts = cleaned.split(":");
+      if (parts.length === 2 && parts.every((part) => /^\d+$/.test(part))) {
+        const minutes = Number(parts[0]);
+        const seconds = Number(parts[1]);
+        if (seconds < 60) return minutes * 60 + seconds;
+        return null;
+      }
+
+      if (parts.length === 3 && parts.every((part) => /^\d+$/.test(part))) {
+        const hours = Number(parts[0]);
+        const minutes = Number(parts[1]);
+        const seconds = Number(parts[2]);
+        if (minutes < 60 && seconds < 60) return hours * 3600 + minutes * 60 + seconds;
+        return null;
+      }
+
+      return null;
+    }
+
+    function parseRun(value) {
+      const cleaned = String(value).trim().replace(/\s+/g, "");
+      if (!cleaned) return null;
+
+      if (cleaned.includes(":")) return parseClock(cleaned);
+      if (!/^\d+$/.test(cleaned)) return null;
+
+      if (cleaned.length <= 2) return Number(cleaned) * 60;
+      if (cleaned.length <= 4) {
+        const minutes = Number(cleaned.slice(0, -2));
+        const seconds = Number(cleaned.slice(-2));
+        return seconds < 60 ? minutes * 60 + seconds : null;
+      }
+      return null;
+    }
+
+    function parseBeer(value) {
+      const cleaned = String(value).trim().replace(/\s+/g, "");
+      if (!cleaned) return null;
+      if (cleaned.includes(":")) return parseClock(cleaned);
+      if (!/^\d+$/.test(cleaned)) return null;
+      return Number(cleaned);
+    }
+
+    function formatDuration(totalSeconds) {
+      const seconds = Number(totalSeconds);
+      const hours = Math.floor(seconds / 3600);
+      const minutes = Math.floor((seconds % 3600) / 60);
+      const remainder = seconds % 60;
+      if (hours) return `${hours}:${String(minutes).padStart(2, "0")}:${String(remainder).padStart(2, "0")}`;
+      return `${minutes}:${String(remainder).padStart(2, "0")}`;
+    }
+
+    function parseField(id) {
+      return id.startsWith("run") ? parseRun($(id).value) : parseBeer($(id).value);
+    }
+
+    function validateField(id, showError = false) {
+      const seconds = parseField(id);
+      const isRun = id.startsWith("run");
+      const maximum = isRun ? 4 * 3600 : 2 * 3600;
+      const valid = Number.isSafeInteger(seconds) && seconds > 0 && seconds <= maximum;
+      $(id).setAttribute("aria-invalid", showError && !valid ? "true" : "false");
+      const hint = $(`${id}Hint`);
+      if (valid) {
+        hint.textContent = formatDuration(seconds);
+        hint.style.color = "var(--good)";
+      } else {
+        hint.textContent = isRun ? "Minutes:seconds" : "M:SS or seconds";
+        hint.style.color = "";
+      }
+      return valid ? seconds : null;
+    }
+
+    function canonicalRecord(times) {
+      return JSON.stringify({
+        version: VERSION,
+        roster: PLAYERS,
+        times
+      });
+    }
+
+    async function sha256Bytes(text) {
+      if (!globalThis.crypto || !globalThis.crypto.subtle) {
+        throw new Error("This browser does not support the required secure hash function.");
+      }
+      const digest = await globalThis.crypto.subtle.digest("SHA-256", encoder.encode(text));
+      return new Uint8Array(digest);
+    }
+
+    async function sha256Hex(text) {
+      const bytes = await sha256Bytes(text);
+      return Array.from(bytes, (byte) => byte.toString(16).padStart(2, "0")).join("");
+    }
+
+    async function deterministicShuffle(items, seed) {
+      const output = [...items];
+      let pool = new Uint8Array(0);
+      let cursor = 0;
+      let block = 0;
+
+      async function nextUint32() {
+        if (cursor + 4 > pool.length) {
+          pool = await sha256Bytes(`${seed}|${block++}`);
+          cursor = 0;
+        }
+        const value = (
+          pool[cursor] * 0x1000000 +
+          pool[cursor + 1] * 0x10000 +
+          pool[cursor + 2] * 0x100 +
+          pool[cursor + 3]
+        ) >>> 0;
+        cursor += 4;
+        return value;
+      }
+
+      for (let index = output.length - 1; index > 0; index -= 1) {
+        const range = index + 1;
+        const limit = Math.floor(0x100000000 / range) * range;
+        let value;
+        do { value = await nextUint32(); } while (value >= limit);
+        const swapIndex = value % range;
+        [output[index], output[swapIndex]] = [output[swapIndex], output[index]];
+      }
+      return output;
+    }
+
+    function showError(message) {
+      $("errorMessage").textContent = message;
+      $("errorMessage").classList.add("visible");
+    }
+
+    function clearError() {
+      $("errorMessage").textContent = "";
+      $("errorMessage").classList.remove("visible");
+    }
+
+    function showToast(message) {
+      clearTimeout(toastTimer);
+      $("toast").textContent = message;
+      $("toast").classList.add("visible");
+      toastTimer = setTimeout(() => $("toast").classList.remove("visible"), 1800);
+    }
+
+    async function copyText(text) {
+      try {
+        await navigator.clipboard.writeText(text);
+      } catch (_) {
+        const area = document.createElement("textarea");
+        area.value = text;
+        area.style.position = "fixed";
+        area.style.opacity = "0";
+        document.body.appendChild(area);
+        area.select();
+        document.execCommand("copy");
+        area.remove();
+      }
+    }
+
+    function copyResultText() {
+      if (!latestResult) return "";
+      const order = latestResult.order.map((name, index) => `${index + 1}. ${name}`).join("\n");
+      return `6K + 4 BEERS — DRAFT ORDER\n\n${order}\n\nDraw ID: ${latestResult.drawId}\nProof: ${latestResult.proof}`;
+    }
+
+    function renderResult(result) {
+      $("orderList").innerHTML = result.order
+        .map((name) => `<li>${escapeHtml(name)}</li>`)
+        .join("");
+      $("drawId").textContent = result.drawId;
+      $("proofHash").textContent = result.proof;
+      $("resultCard").classList.add("visible");
+      $("resultCard").scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+
+    async function generate(event) {
+      event.preventDefault();
+      clearError();
+
+      const times = [];
+      let firstInvalid = null;
+      for (const id of fieldIds) {
+        const seconds = validateField(id, true);
+        if (seconds === null && !firstInvalid) firstInvalid = $(id);
+        times.push(seconds);
+      }
+
+      if (firstInvalid) {
+        showError("Enter all six times. Run times accept 28:42 or 2842; beer times accept 1:20 or 80 seconds.");
+        firstInvalid.focus();
+        return;
+      }
+
+      const button = event.submitter || document.querySelector("button[type='submit']");
+      button.disabled = true;
+      button.textContent = "Calculating…";
+
+      try {
+        const proof = await sha256Hex(canonicalRecord(times));
+        const order = await deterministicShuffle(PLAYERS, proof);
+        latestResult = {
+          order,
+          proof,
+          drawId: proof.slice(0, 4).toUpperCase() + "-" + proof.slice(4, 8).toUpperCase(),
+          times
+        };
+        renderResult(latestResult);
+      } catch (error) {
+        console.error(error);
+        showError(error.message || "The order could not be generated.");
+      } finally {
+        button.disabled = false;
+        button.textContent = "Generate draft order";
+      }
+    }
+
+    function clearAll() {
+      $("draftForm").reset();
+      fieldIds.forEach((id) => validateField(id, false));
+      clearError();
+      latestResult = null;
+      $("resultCard").classList.remove("visible");
+      $("run1").focus();
+    }
+
+    renderRoster();
+    $("draftForm").addEventListener("submit", generate);
+
+    fieldIds.forEach((id) => {
+      $(id).addEventListener("input", () => {
+        $(id).setAttribute("aria-invalid", "false");
+        clearError();
+      });
+      $(id).addEventListener("blur", () => {
+        const seconds = validateField(id, false);
+        if (seconds !== null) $(id).value = formatDuration(seconds);
+      });
+    });
+
+    $("copyButton").addEventListener("click", async () => {
+      if (!latestResult) return;
+      await copyText(copyResultText());
+      showToast("Draft order copied");
+    });
+
+    $("clearButton").addEventListener("click", clearAll);
+  </script>
 </body>
 </html>
