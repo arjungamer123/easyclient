@@ -1,0 +1,49 @@
+name: Publish calculator
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - index.html
+      - styles.css
+      - crypto.js
+      - app.js
+      - .github/workflows/publish.yml
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: publish-calculator
+  cancel-in-progress: true
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out main
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Publish static files to gh-pages
+        shell: bash
+        run: |
+          set -euo pipefail
+          git fetch origin gh-pages
+          git worktree add /tmp/gh-pages gh-pages
+          find /tmp/gh-pages -mindepth 1 -maxdepth 1 ! -name .git -exec rm -rf {} +
+          cp index.html styles.css crypto.js app.js /tmp/gh-pages/
+          touch /tmp/gh-pages/.nojekyll
+          cd /tmp/gh-pages
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          if git diff --cached --quiet; then
+            echo "No deployment changes."
+            exit 0
+          fi
+          git commit -m "Deploy ${GITHUB_SHA}"
+          git push origin gh-pages
