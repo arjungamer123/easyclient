@@ -1,4 +1,4 @@
-# 6K + 4 Beers Draft Lottery
+# 6K + 4 Beers Draft Order
 
 A mobile-first fantasy-football draft-order generator for two runners representing ten managers.
 
@@ -6,14 +6,19 @@ A mobile-first fantasy-football draft-order generator for two runners representi
 
 https://arjungamer123.github.io/easyclient/
 
-## Event protocol
+## Inputs
 
-1. Generate and share the pre-run lock code.
-2. Record both exact 6K elapsed times.
-3. At the bar, tap each beer card when that glass is served—two beers per runner.
-4. Enter the bar name, receipt/check reference and printed pre-tip total.
-5. Reveal the order and share the verification link.
+The calculator uses only six durations:
 
-The calculator normalizes the evidence, creates a SHA-256 proof and uses the digest to drive a deterministic Fisher–Yates shuffle. Identical evidence always reproduces the same order.
+1. Arjun's 6K time
+2. The other runner's 6K time
+3. Arjun's first beer time
+4. The other runner's first beer time
+5. Arjun's second beer time
+6. The other runner's second beer time
 
-Drinking speed is not scored. Non-alcoholic beer works identically.
+Run times accept `28:42` or `2842`. Beer times accept `1:20` or total seconds such as `80`.
+
+The six durations and fixed manager list are converted into a SHA-256 proof. That proof drives a deterministic Fisher–Yates shuffle, so identical times always reproduce the identical order.
+
+There are no locks, timestamps, receipt fields, service logs or automatic messages.
