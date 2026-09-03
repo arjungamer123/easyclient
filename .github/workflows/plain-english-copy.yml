@@ -1,0 +1,54 @@
+name: Update calculation copy
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - .github/workflows/plain-english-copy.yml
+
+permissions:
+  contents: write
+
+jobs:
+  update-copy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out main
+        uses: actions/checkout@v6
+
+      - name: Replace the calculation explanation
+        shell: python
+        run: |
+          from pathlib import Path
+          import re
+
+          path = Path("index.html")
+          html = path.read_text(encoding="utf-8")
+
+          replacement = '''    <details>
+      <summary>How the calculation works</summary>
+      <div class="method">
+        <p>You enter six times: the two 6K times and the four beer times.</p>
+        <p>The calculator mixes those six times together and uses them to shuffle all ten names.</p>
+        <p>The times do not give either runner points or an advantage. Think of them as the numbers being pulled from a hat.</p>
+        <p>Enter the same six times again and you will get the same draft order. Change any time—even by one second—and the order will usually change.</p>
+      </div>
+    </details>'''
+
+          pattern = r'    <details>\s*<summary>How the calculation works</summary>.*?    </details>'
+          updated, count = re.subn(pattern, replacement, html, count=1, flags=re.S)
+          if count != 1:
+              raise SystemExit(f"Expected one calculation section, found {count}")
+
+          path.write_text(updated, encoding="utf-8")
+
+      - name: Commit the copy change
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add index.html
+          git commit -m "Explain the draft calculation in plain English"
+          git push origin main
